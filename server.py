@@ -1,3 +1,4 @@
+# server.py
 import socket
 import threading
 import mss
@@ -13,11 +14,16 @@ def capturar_e_enviar(conn):
         monitor = sct.monitors[1]
         while True:
             img = sct.grab(monitor)
+            w, h = img.size
+            header = pickle.dumps((w, h))
+            header_size = len(header).to_bytes(4, 'big')
+
             data = pickle.dumps(img.rgb)
             compressed = zlib.compress(data, 9)
-            size = len(compressed)
+            img_size = len(compressed).to_bytes(4, 'big')
+
             try:
-                conn.sendall(size.to_bytes(4, 'big') + compressed)
+                conn.sendall(header_size + header + img_size + compressed)
             except:
                 break
 
